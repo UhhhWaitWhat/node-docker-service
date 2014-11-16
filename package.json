@@ -1,6 +1,7 @@
 {
   "name": "docker-service",
-  "version": "1.0.0",
+  "description": "Manage docker containers as services",
+  "version": "1.0.1",
   "main": "index.js",
   "bin": "bin/docker-service.sh",
   "repository": {
