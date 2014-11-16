@@ -7,4 +7,4 @@ while [ -h "$SOURCE" ]; do
 done
 DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
-node --harmony $DIR/docker-services.js "$@"
+node --harmony $DIR/docker-service.js "$@"

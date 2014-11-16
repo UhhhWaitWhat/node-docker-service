@@ -9,7 +9,7 @@ Structure of a Service
 ----------------------
 Each service lives inside its own folder. This folder may be located anywhere, and will be symlinked into `~/.docker-services` by using
 
-	$ docker-services add /some/services/folder
+	$ docker-service add /some/services/folder
 
 ### service.json
 A service contains at its heart a `service.json` file, which may look like this:
@@ -62,25 +62,25 @@ CLI
 ---
 The application exposes the following commands:
 
-### docker-services add \<path\>
+### docker-service add \<path\>
 Adds a new service from a directory
 
-### docker-services remove \<name\>
+### docker-service remove \<name\>
 Removes the given service, including any images and containers.
 
-### docker-services start \<name\>
+### docker-service start \<name\>
 Builds any neccessary images and containers as well as starting all dependencies before starting up your service. First time doing this might take some time.
 
-### docker-services stop \<name\>
+### docker-service stop \<name\>
 Stops the container running your service
 
-### docker-services restart \<name\>
+### docker-service restart \<name\>
 Restarts a service.
 
-### docker-services status \<name\>
+### docker-service status \<name\>
 Prints status information as json to the command line.
 
-### docker-services list
+### docker-service list
 Lists all installed services with their current status.
 
 Errors

@@ -1,11 +1,11 @@
 {
-  "name": "docker-services",
+  "name": "docker-service",
   "version": "1.0.0",
   "main": "index.js",
-  "bin": "bin/docker-services.sh",
+  "bin": "bin/docker-service.sh",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Paulavery/node-docker-services.git"
+    "url": "https://github.com/Paulavery/node-docker-service.git"
   },
   "devDependencies": {
     "co-mocha": "^1.0.3",
