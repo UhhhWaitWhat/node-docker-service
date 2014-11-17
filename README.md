@@ -42,7 +42,7 @@ If omitted it will default to the part behind the `/` of your `tag`.
 I would suggest to use this property to allow for drop-in replacements of dependencies (e.g. a `mopidy` and an `mpd` service could both have different tags but the name `mpd`, as they are providing the same service for dependents).
 
 #### ports
-An array defining the ports this service will expose to you. This should not contain any ports needed for services to communicate with each other.
+An array defining the ports this service will expose to you. This should not contain any ports not exposed to the user.
 
 #### mounts
 Define names for any directories which need to be mounted into your services container. See about the mounts directory below.
@@ -55,7 +55,7 @@ You should symlink your mounts here under the name defined in your `service.json
 If you have no mounts, you do not need this directory.
 
 ### `config` directory
-This directory contains any configuration files for your service. These are linked into the services container, so you may change them without the need to mess without much fuss.
+This directory contains any configuration files for your service. These are linked into the services container, so you may change them without much fuss.
 You should treat this directory like a linux systems root folder. So `mounts/etc/something.conf` will be linked to `/etc/something.conf` inside the container.
 If you have no configuration files, you may omit this folder.
 
