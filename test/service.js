@@ -677,7 +677,7 @@ describe('A Service Object', function() {
 				it('with mounts to take the hoststimezone', function() {
 					line.must.contain(' -v /etc/localtime:/etc/localtime:ro');
 					line.must.contain(' -v /etc/timezone:/etc/timezone:ro');
-				})
+				});
 			});
 		});
 	});
