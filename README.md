@@ -6,6 +6,8 @@ This tool allows the user to manage services run within docker containers. I cre
 
 After messing around with virtual machines for quite some time, I finally settled on running each service in its own docker container. This application helps me (and maybe you), to easily mount folders and config files, to expose neccessary ports and to build and start all neccessary images and containers.
 
+It also takes care of setting the containers timezone, so no time mismatches happen between the service and the host.
+
 Structure of a Service
 ----------------------
 Each service lives inside its own folder. This folder may be located anywhere, and will be symlinked into `~/.docker-services` by using

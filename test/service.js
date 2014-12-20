@@ -673,6 +673,11 @@ describe('A Service Object', function() {
 					line.must.contain(' -v ' + dir + '/config/some/config1:/some/config1');
 					line.must.contain(' -v ' + dir + '/config/some/config2:/some/config2');
 				});
+
+				it('with mounts to take the hoststimezone', function() {
+					line.must.contain(' -v /etc/localtime:/etc/localtime:ro');
+					line.must.contain(' -v /etc/timezone:/etc/timezone:ro');
+				})
 			});
 		});
 	});
