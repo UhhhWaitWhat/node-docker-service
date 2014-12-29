@@ -58,8 +58,21 @@ If you have no mounts, you do not need this directory.
 
 ### `config` directory
 This directory contains any configuration files for your service. These are linked into the services container, so you may change them without much fuss.
-You should treat this directory like a linux systems root folder. So `mounts/etc/something.conf` will be linked to `/etc/something.conf` inside the container.
+You should treat this directory like a linux systems root folder. So `config/etc/something.conf` will be linked to `/etc/something.conf` inside the container.
 If you have no configuration files, you may omit this folder.
+
+In addition, you may specify entire folders in your `service.json`'s `configs` property. The following would mount `config/home/sabnzbd/.sabnzbd` and `config/home/sabnzbd/downloads` to `/home/sabnzbd/.sabnzbd` and `/home/sabnzbd/downloads` respectively:
+
+	{
+		configs: {
+			'home/sabnzbd': {
+				'.sabnzbd': {},
+				'downloads': {}
+			}
+		}
+	}
+
+Single files will still be mounted seperately **unless** they are positioned in a folder which will be mounted.
 
 CLI
 ---

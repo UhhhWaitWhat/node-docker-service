@@ -20,7 +20,12 @@ function prepareFS(json, dockerfile, config, mounts) {
 	if(config) root.config = {
 		'some': {
 			'config1': 'ABC',
-			'config2': 'DEF'
+			'config2': 'DEF',
+			'other': {
+				'config': {},
+				'folders': {}
+			},
+			'empty': {}
 		}
 	};
 	if(mounts) {
@@ -366,14 +371,67 @@ describe('A Service Object', function() {
 		});
 
 		describe('getConfigs() which', function() {
-			it('returns all config files', function *() {
-				reset.push(prepareFS({}, false, true));
+			describe('returns correct configs and folders', function() {
+				it('when no folders are defined', function *() {
+					reset.push(prepareFS({}, false, true));
 
-				var service = new Service(dir, {});
-				var configs = yield service.getConfigs();
+					var service = new Service(dir, {});
+					var configs = yield service.getConfigs();
 
-				configs.must.contain('some/config1');
-				configs.must.contain('some/config2');
+					configs.must.contain('some/config1');
+					configs.must.contain('some/config2');
+				});
+
+				it('when no overlap exists', function *() {
+					reset.push(prepareFS({configs: {
+						'some/other': {
+							config: {
+								folders: {},
+								oneMore: {}
+							},
+							empty: {}
+						}
+					}}, false, true));
+
+					var service = new Service(dir, {});
+					var configs = yield service.getConfigs();
+
+					configs.must.contain('some/other/config/folders');
+					configs.must.contain('some/other/config/oneMore');
+					configs.must.contain('some/other/empty');
+
+					configs.must.contain('some/config1');
+					configs.must.contain('some/config2');
+				});
+
+				it('when overlap exists', function *() {
+					reset.push(prepareFS({configs: {
+						'some': {}
+					}}, false, true));
+
+					var service = new Service(dir, {});
+					var configs = yield service.getConfigs();
+
+					configs.must.contain('some');
+					configs.must.not.contain('some/config1');
+					configs.must.not.contain('some/config2');
+				});
+
+				it('throws if folder does not exist', function *() {
+					reset.push(prepareFS({configs: {
+						'someNonExistent': {}
+					}}));
+
+					//We cannot use .must.throw because we have a generator function
+					var thrown;
+					try {
+						service.getConfigFolders.must.throw();
+					} catch(e) {
+						thrown = e;
+					}
+
+					thrown.must.be.instanceof(Error);
+				});
 			});
 		});
 
@@ -635,7 +693,16 @@ describe('A Service Object', function() {
 				reset.push(prepareFS({
 					deps: ['dep1', 'dep2'],
 					mounts: {'mount1': '/some/mount1', 'mount2': '/some/mount2'},
-					ports: [1000, 2000]
+					ports: [1000, 2000],
+					configs: {
+						'some/other': {
+							config: {
+								folders: {},
+								oneMore: {}
+							},
+							empty: {}
+						}
+					}
 				}, true, true));
 
 				var services = {dep1: true, dep2: true};
@@ -672,6 +739,9 @@ describe('A Service Object', function() {
 				it('with correct configs', function() {
 					line.must.contain(' -v ' + dir + '/config/some/config1:/some/config1');
 					line.must.contain(' -v ' + dir + '/config/some/config2:/some/config2');
+					line.must.contain(' -v ' + dir + '/config/some/other/config/folders:/some/other/config/folders');
+					line.must.contain(' -v ' + dir + '/config/some/other/config/oneMore:/some/other/config/oneMore');
+					line.must.contain(' -v ' + dir + '/config/some/other/empty:/some/other/empty');
 				});
 
 				it('with mounts to take the hoststimezone', function() {
