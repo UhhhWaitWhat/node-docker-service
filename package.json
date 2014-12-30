@@ -1,8 +1,9 @@
 {
   "name": "docker-service",
   "description": "Manage docker containers as services",
-  "version": "1.2.0",
+  "version": "2.0.0",
   "main": "index.js",
+  "preferGlobal": "true",
   "bin": "bin/docker-service.sh",
   "repository": {
     "type": "git",
