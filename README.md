@@ -10,9 +10,11 @@ It also takes care of setting the containers timezone, so no time mismatches hap
 
 Structure of a Service
 ----------------------
-Each service lives inside its own folder. This folder may be located anywhere, and will be symlinked into `~/.docker-services` by using
+Each service lives inside its own folder. This folder may be located anywhere, and will be symlinked into `/etc/docker-services` by using
 
 	$ docker-service add /some/services/folder
+
+This folder will not be deleted upon uninstalling this module, so you should take care of this on your own!
 
 ### service.json
 A service contains at its heart a `service.json` file, which may look like this:
@@ -87,6 +89,8 @@ Removes the given service, including any images and containers.
 ### docker-service start \<name\>
 Builds any neccessary images and containers as well as starting all dependencies before starting up your service. First time doing this might take some time.
 
+A `-d`/`--nodaemon` flag may be passed, to start a service in non-daemon mode.
+
 ### docker-service stop \<name\>
 Stops the container running your service
 
@@ -98,6 +102,15 @@ Prints status information as json to the command line.
 
 ### docker-service list
 Lists all installed services with their current status.
+
+### docker-service systemd
+Install a systemd service `dockers` to start services on boot.
+If the service is installed, removes it.
+
+Use like:
+
+	systemctl enable dockers@servicename
+
 
 Errors
 ------

@@ -4,7 +4,7 @@ var fs = trequire('fs');
 var path = require('path');
 var Service = require('./lib/service');
 
-var root = path.join(process.env.HOME, '.docker-services');
+var root = '/etc/docker-services';
 if(!fs.existsSync(root)) fs.mkdirSync(root);
 
 var services = {};

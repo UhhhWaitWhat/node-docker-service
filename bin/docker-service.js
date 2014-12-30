@@ -2,6 +2,8 @@
 var co = require('co');
 var pkg = require('../package.json');
 var services = require('../index.js');
+var fs = require('fs');
+var path = require('path');
 
 var app = require('commander');
 
@@ -44,10 +46,11 @@ app.command('remove <service>')
 
 app.command('start <service>')
 	.description('Start a service')
-	.action(function(name) {
+	.option('-d, --nodaemon', 'Do not start in daemon mode')
+	.action(function(name, opts) {
 		co(function *() {
 			var service = yield services.get(name);
-			yield service.start();
+			yield service.start(opts.nodaemon);
 		})(function(err) {
 			if(err) throw err;
 		});
@@ -73,6 +76,21 @@ app.command('restart <service>')
 		})(function(err) {
 			if(err) throw werr;
 		});
+	});
+
+app.command('systemd')
+	.description('Add or remove systemd service')
+	.action(function() {
+		var file = '/usr/lib/systemd/system/dockers@.service';
+
+		try {
+			fs.symlinkSync(path.join('..', __dirname, 'systemd.service'), file);
+			console.log('Added', file);
+		} catch(e) {
+			if(e.code !== 'EEXIST') throw e;
+			fs.unlinkSync(file);
+			console.log('Removed', file);
+		}
 	});
 
 app.parse(process.argv);
