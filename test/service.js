@@ -331,16 +331,27 @@ describe('A Service Object', function() {
 		});
 
 		describe('resume() which', function() {
-			it('calls docker start', function *() {
-				var stub = sinon.stub();
-				reset.push(prepareFS());
-				reset.push(prepareDocker(stub));
+			describe('calls docker start', function () {
+				var service, stub = sinon.stub();
 
-				var service = new Service(dir, {});
+				beforeEach(function() {
+					stub.reset();
+					reset.push(prepareFS());
+					reset.push(prepareDocker(stub));
+					service = new Service(dir, {});
+				});
 
-				yield service.resume();
-				stub.calledOnce.must.be.true();
-				stub.calledWith(['start', 'tag']).must.be.true();
+				it('in daemon mode without the -a flag', function *() {
+					yield service.resume();
+					stub.calledOnce.must.be.true();
+					stub.calledWith(['start', '', 'tag']).must.be.true();
+				});
+
+				it('in nodaemon mode with the -a flag', function *() {
+					yield service.resume(true);
+					stub.calledOnce.must.be.true();
+					stub.calledWith(['start', '-a', 'tag']).must.be.true();
+				});
 			});
 		});
 
@@ -496,8 +507,21 @@ describe('A Service Object', function() {
 				spy.reset();
 				reset.push(prepareFS());
 				service = new Service(dir, {});
+
 				service.startDeps = function *() {
 					spy('startDeps');
+				};
+
+				service.resume = function *(nodaemon) {
+					spy('resume', nodaemon);
+				};
+
+				service.build = function *() {
+					spy('build');
+				};
+
+				service.run = function *(nodaemon) {
+					spy('run', nodaemon);
 				};
 			});
 
@@ -544,10 +568,6 @@ describe('A Service Object', function() {
 						service.isBuilt = function *() {
 							return true;
 						};
-
-						service.resume = function *() {
-							spy('resume');
-						};
 					});
 
 					it('starts dependencies', function *() {
@@ -555,9 +575,9 @@ describe('A Service Object', function() {
 						spy.calledWith('startDeps').must.be.true();
 					});
 
-					it('resumes the container', function *() {
-						yield service.start();
-						spy.calledWith('resume').must.be.true();
+					it('resumes the container and preserves the nodaemon argument', function *() {
+						yield service.start('SOMESTUFF');
+						spy.calledWith('resume', 'SOMESTUFF').must.be.true();
 					});
 				});
 
@@ -573,10 +593,6 @@ describe('A Service Object', function() {
 							service.hasImage = function *() {
 								return true;
 							};
-
-							service.run = function *() {
-								spy('run');
-							};
 						});
 
 						it('starts dependencies', function *() {
@@ -584,9 +600,9 @@ describe('A Service Object', function() {
 							spy.calledWith('startDeps').must.be.true();
 						});
 
-						it('runs the service', function *() {
-							yield service.start();
-							spy.calledWith('run').must.be.true();
+						it('runs the service and preservers the nodaemon argument', function *() {
+							yield service.start('SOMESTUFF');
+							spy.calledWith('run', 'SOMESTUFF').must.be.true();
 						});
 					});
 
@@ -594,14 +610,6 @@ describe('A Service Object', function() {
 						beforeEach(function() {
 							service.hasImage = function *() {
 								return false;
-							};
-
-							service.build = function *() {
-								spy('build');
-							};
-
-							service.run = function *() {
-								spy('run');
 							};
 						});
 
@@ -615,9 +623,9 @@ describe('A Service Object', function() {
 							spy.calledWith('build').must.be.true();
 						});
 
-						it('runs the service', function *() {
-							yield service.start();
-							spy.calledWith('run').must.be.true();
+						it('runs the service and preserves the nodaemon argument', function *() {
+							yield service.start('SOMESTUFF');
+							spy.calledWith('run', 'SOMESTUFF').must.be.true();
 						});
 					});
 				});
@@ -686,8 +694,7 @@ describe('A Service Object', function() {
 		});
 
 		describe('run() which', function() {
-			var line;
-			before(function *() {
+			function *genLine(nodaemon) {
 				var stub = sinon.stub();
 				reset.push(prepareDocker(stub));
 				reset.push(prepareFS({
@@ -708,45 +715,57 @@ describe('A Service Object', function() {
 				var services = {dep1: true, dep2: true};
 				var service = new Service(dir, services);
 
-				yield service.run();
+				yield service.run(nodaemon);
 				line = stub.firstCall.args[0].join(' ');
-			});
+			}
 
 			describe('calls docker run', function() {
-				it('on the correct image', function() {
-					line.substring(0, 3).must.be('run');
-					line.substring(line.length-8).must.be('user/tag');
+				describe('by default', function *() {
+					var line = yield genLine();
+
+					it('on the correct image', function() {
+						line.substring(0, 3).must.be('run');
+						line.substring(line.length-8).must.be('user/tag');
+					});
+
+					it('in deamon mode', function() {
+						line.must.contain(' -d ');
+					});
+
+					it('with correct name', function() {
+						line.must.contain(' --name tag ');
+					});
+
+					it('with correct mounts', function() {
+						line.must.contain(' -v ' + dir + '/mounts/mount1:/some/mount1 ');
+						line.must.contain(' -v ' + dir + '/mounts/mount2:/some/mount2 ');
+					});
+
+					it('with correct ports', function() {
+						line.must.contain(' -p 1000:1000 ');
+						line.must.contain(' -p 2000:2000 ');
+					});
+
+					it('with correct configs', function() {
+						line.must.contain(' -v ' + dir + '/config/some/config1:/some/config1');
+						line.must.contain(' -v ' + dir + '/config/some/config2:/some/config2');
+						line.must.contain(' -v ' + dir + '/config/some/other/config/folders:/some/other/config/folders');
+						line.must.contain(' -v ' + dir + '/config/some/other/config/oneMore:/some/other/config/oneMore');
+						line.must.contain(' -v ' + dir + '/config/some/other/empty:/some/other/empty');
+					});
+
+					it('with mounts to take the hoststimezone', function() {
+						line.must.contain(' -v /etc/localtime:/etc/localtime:ro');
+						line.must.contain(' -v /etc/timezone:/etc/timezone:ro');
+					});
 				});
 
-				it('in deamon mode', function() {
-					line.must.contain(' -d ');
-				});
+				describe('in non daemon mode', function *() {
+					var line = yield genLine(true);
 
-				it('with correct name', function() {
-					line.must.contain(' --name tag ');
-				});
-
-				it('with correct mounts', function() {
-					line.must.contain(' -v ' + dir + '/mounts/mount1:/some/mount1 ');
-					line.must.contain(' -v ' + dir + '/mounts/mount2:/some/mount2 ');
-				});
-
-				it('with correct ports', function() {
-					line.must.contain(' -p 1000:1000 ');
-					line.must.contain(' -p 2000:2000 ');
-				});
-
-				it('with correct configs', function() {
-					line.must.contain(' -v ' + dir + '/config/some/config1:/some/config1');
-					line.must.contain(' -v ' + dir + '/config/some/config2:/some/config2');
-					line.must.contain(' -v ' + dir + '/config/some/other/config/folders:/some/other/config/folders');
-					line.must.contain(' -v ' + dir + '/config/some/other/config/oneMore:/some/other/config/oneMore');
-					line.must.contain(' -v ' + dir + '/config/some/other/empty:/some/other/empty');
-				});
-
-				it('with mounts to take the hoststimezone', function() {
-					line.must.contain(' -v /etc/localtime:/etc/localtime:ro');
-					line.must.contain(' -v /etc/timezone:/etc/timezone:ro');
+					it('without the -d flag', function() {
+						line.must.not.contain(' -d');
+					});
 				});
 			});
 		});
