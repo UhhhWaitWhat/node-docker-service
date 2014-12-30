@@ -716,12 +716,15 @@ describe('A Service Object', function() {
 				var service = new Service(dir, services);
 
 				yield service.run(nodaemon);
-				line = stub.firstCall.args[0].join(' ');
+				return stub.firstCall.args[0].join(' ');
 			}
 
 			describe('calls docker run', function() {
-				describe('by default', function *() {
-					var line = yield genLine();
+				describe('by default', function() {
+					var line;
+					before(function *() {
+						line = yield genLine();
+					});
 
 					it('on the correct image', function() {
 						line.substring(0, 3).must.be('run');
@@ -760,8 +763,11 @@ describe('A Service Object', function() {
 					});
 				});
 
-				describe('in non daemon mode', function *() {
-					var line = yield genLine(true);
+				describe('in non daemon mode', function() {
+					var line;
+					before(function *() {
+						line = yield genLine(true);
+					});
 
 					it('without the -d flag', function() {
 						line.must.not.contain(' -d');
