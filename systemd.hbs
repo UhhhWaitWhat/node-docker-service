@@ -1,0 +1,13 @@
+[Unit]
+Description=docker-service unit for {{name}}
+Requires=docker.service{{#each dependency}} {{this}}{{/each}}{{#each dependant}} {{this}}{{/each}}
+After=docker.service {{#each dependency}} {{this}}{{/each}}
+Before={{#each dependant}} {{this}}{{/each}}
+
+[Service]
+Restart=always
+ExecStart=/usr/bin/docker start -a {{name}}
+ExecStop=/usr/bin/docker stop {{name}}
+
+[Install]
+WantedBy=multi-user.target

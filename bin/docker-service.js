@@ -1,29 +1,23 @@
 #!/usr/bin/env node
 var co = require('co');
 var pkg = require('../package.json');
-var services = require('../index.js');
-var fs = require('fs');
-var path = require('path');
+var ServiceManager = require('../lib/service-manager');
 
+var services = new ServiceManager('/etc/docker-services');
 var app = require('commander');
-
 app.version(pkg.version);
 
 app.command('list')
 	.description('List all installed services')
 	.action(function() {
-		co(services.list)(function(err, data) {
-			if(err) throw err;
-			console.log(data.join('\n'));
-		});
+		console.log(Object.keys(services.services).join('\n'));
 	});
 
-app.command('status <name>')
-	.description('Retrieve infos about a service')
-	.action(function(name) {
-		co(services.status(name))(function(err, data) {
+app.command('rebuild')
+	.description('Recreate all containers')
+	.action(function() {
+		co(services.rebuild())(function(err) {
 			if(err) throw err;
-			console.log(data);
 		});
 	});
 
@@ -32,7 +26,6 @@ app.command('add <path>')
 	.action(function(path) {
 		co(services.add(path))(function(err, service) {
 			if(err) throw err;
-			console.log(service.name);
 		});
 	});
 
@@ -46,12 +39,8 @@ app.command('remove <service>')
 
 app.command('start <service>')
 	.description('Start a service')
-	.option('-d, --nodaemon', 'Do not start in daemon mode')
 	.action(function(name, opts) {
-		co(function *() {
-			var service = yield services.get(name);
-			yield service.start(opts.nodaemon);
-		})(function(err) {
+		co(services.get(name).start())(function(err) {
 			if(err) throw err;
 		});
 	});
@@ -59,10 +48,7 @@ app.command('start <service>')
 app.command('stop <service>')
 	.description('Stop a service')
 	.action(function(name) {
-		co(function *() {
-			var service = yield services.get(name);
-			yield service.stop();
-		})(function(err) {
+		co(services.get(name).stop())(function(err) {
 			if(err) throw err;
 		});
 	});
@@ -70,27 +56,9 @@ app.command('stop <service>')
 app.command('restart <service>')
 	.description('Restart a service')
 	.action(function(name) {
-		co(function *() {
-			var service = yield services.get(name);
-			yield service.restart();
-		})(function(err) {
-			if(err) throw werr;
+		co(services.get(name).restart())(function(err) {
+			if(err) throw err;
 		});
-	});
-
-app.command('systemd')
-	.description('Add or remove systemd service')
-	.action(function() {
-		var file = '/usr/lib/systemd/system/dockers@.service';
-
-		try {
-			fs.symlinkSync(path.join('..', __dirname, 'systemd.service'), file);
-			console.log('Added', file);
-		} catch(e) {
-			if(e.code !== 'EEXIST') throw e;
-			fs.unlinkSync(file);
-			console.log('Removed', file);
-		}
 	});
 
 app.parse(process.argv);
