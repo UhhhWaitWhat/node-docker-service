@@ -1,9 +1,10 @@
 Docker Service Manager
 ======================
-[![Build Status](https://img.shields.io/travis/PaulAvery/node-docker-service.svg?style=flat)](https://travis-ci.org/PaulAvery/node-docker-service)
-** Warning ** The badge above only represents linting results at the moment due to missing time to write tests. They will hopefully return at some point in the not-so-far future.
+[![Build Status](https://img.shields.io/travis/PaulAvery/node-docker-service.svg?style=flat)](https://travis-ci.org/PaulAvery/node-docker-service)  
 
-** Warning: ** This version (`>= 3.0.0`) breaks compatibility with previous versions entirely by moving to a systemd only philosophy. Reasoning behind this is, that this is a project mainly for my own use and I aim to deploy this on systemd based systems only. If you want a system which works without systemd, use (or fork) version [2.0.0](tree/fd37f83fdd409827f9aea2eccf5d06e6b55bd50d).
+**Warning** The badge above only represents linting results at the moment due to missing time to write tests. They will hopefully return at some point in the not-so-far future.
+
+**Warning:** This version (`>= 3.0.0`) breaks compatibility with previous versions entirely by moving to a systemd only philosophy. Reasoning behind this is, that this is a project mainly for my own use and I aim to deploy this on systemd based systems only. If you want a system which works without systemd, use (or fork) version [2.0.0](tree/fd37f83fdd409827f9aea2eccf5d06e6b55bd50d).
 
 This tool allows the user to manage services run within docker containers. I created this tool out of the neccesity to have a multitude of services running on a single private server. These services might at times depend on each other and each expose different ports.
 
@@ -114,9 +115,6 @@ Stops the container running your service
 
 ### docker-service restart \<name\>
 Restarts a service.
-
-### docker-service status \<name\>
-Prints status information as json to the command line.
 
 ### docker-service list
 Lists all installed services with their current status.
